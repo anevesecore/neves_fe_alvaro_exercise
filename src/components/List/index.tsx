@@ -7,13 +7,14 @@ import {Container} from './styles';
 interface Props {
     items?: ListItem[];
     hasNavigation?: boolean;
-    isLoading: string;
+    isLoading: boolean;
 }
 
 const List = ({items, hasNavigation = true, isLoading}: Props) => {
     return (
         <Container>
             {isLoading && <Spinner />}
+            {!isLoading&& items.length===0  && <legend data-testid='noItemsMessage'>There are no items to show</legend>}
             {!isLoading &&
                 items.map(({url, id, columns, navigationProps}, index) => {
                     return (

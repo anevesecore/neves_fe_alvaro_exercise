@@ -5,8 +5,8 @@ import Card from '../components/Card';
 import {Container} from '../components/GlobalComponents';
 import Header from '../components/Header';
 
-var mapU = (user: UserData) => {
-    var columns = [
+const makeCards = (user: UserData) => {
+    const columns = [
         {
             key: 'Name',
             value: `${user.firstName} ${user.lastName}`,
@@ -25,12 +25,14 @@ var mapU = (user: UserData) => {
 
 const UserOverview = () => {
     const location = useLocation();
+    const userData: UserData = location.state;
     return (
         <Container>
             <Header
-                title={`User ${location.state.firstName} ${location.state.lastName}`}
+                title={`User ${userData.firstName} ${userData.lastName}`}
             />
-            {mapU(location.state)}
+            <img src={userData.avatarUrl} alt={`${userData.firstName}'s avatar`} />
+            {makeCards(userData)}
         </Container>
     );
 };

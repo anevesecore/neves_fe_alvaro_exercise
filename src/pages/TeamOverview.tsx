@@ -6,10 +6,11 @@ import Card from '../components/Card';
 import {Container} from '../components/GlobalComponents';
 import Header from '../components/Header';
 import List from '../components/List';
+import {SearchInput} from '../components/SearchInput';
 
-var mapArray = (users: UserData[]) => {
+const getUsersData = (users: UserData[]) => {
     return users.map(u => {
-        var columns = [
+        const columns = [
             {
                 key: 'Name',
                 value: `${u.firstName} ${u.lastName}`,
@@ -32,8 +33,8 @@ var mapArray = (users: UserData[]) => {
     }) as ListItem[];
 };
 
-var mapTLead = tlead => {
-    var columns = [
+const getLead = tlead => {
+    const columns = [
         {
             key: 'Team Lead',
             value: '',
@@ -51,7 +52,7 @@ var mapTLead = tlead => {
             value: tlead.location,
         },
     ];
-    return <Card columns={columns} url={`/user/${tlead.id}`} navigationProps={tlead} />;
+    return <Card columns={columns} url={`/user/${tlead.id}`} navigationProps={tlead}/>;
 };
 
 interface PageState {
@@ -64,31 +65,51 @@ const TeamOverview = () => {
     const {teamId} = useParams();
     const [pageData, setPageData] = React.useState<PageState>({});
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const [filteredTeamMembers, setFilteredTeamMembers] = React.useState<any>([]);
 
     React.useEffect(() => {
-        var getTeamUsers = async () => {
+        const getTeamUsers = async () => {
             const {teamLeadId, teamMemberIds = []} = await getTeamOverview(teamId);
             const teamLead = await getUserData(teamLeadId);
 
             const teamMembers = [];
-            for(var teamMemberId of teamMemberIds) {
-                const data = await getUserData(teamMemberId);
+            for(const teamMemberId of teamMemberIds) {
+                const data = getUserData(teamMemberId);
                 teamMembers.push(data);
             }
-            setPageData({
-                teamLead,
-                teamMembers,
+
+            await Promise.all(teamMembers).then((r) => {
+                setPageData({
+                    teamLead,
+                    teamMembers: r,
+                });
+                setFilteredTeamMembers(r);
             });
-            setIsLoading(false);
         };
-        getTeamUsers();
+        getTeamUsers().then(() => {
+            setIsLoading(false);
+        });
     }, [teamId]);
+
+    const filterUsers = (event) => {
+        // Access input value
+        const query = event.target.value;
+        // Include all elements which includes the search query
+        const teamMembers: UserData[] = pageData.teamMembers;
+        const filtered = teamMembers.filter((item) => {
+            const searchKey = item.displayName;
+            return searchKey.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+        });
+        // Trigger render with updated values
+        setFilteredTeamMembers(filtered);
+    };
 
     return (
         <Container>
             <Header title={`Team ${location.state.name}`} />
-            {!isLoading && mapTLead(pageData.teamLead)}
-            <List items={mapArray(pageData?.teamMembers ?? [])} isLoading={isLoading} />
+            {!isLoading && getLead(pageData.teamLead)}
+            {!isLoading && <SearchInput onChangeHandler={filterUsers} />}
+            <List items={getUsersData(filteredTeamMembers ?? [])} isLoading={isLoading} />
         </Container>
     );
 };

@@ -4,10 +4,11 @@ import {getTeams as fetchTeams} from '../api';
 import Header from '../components/Header';
 import List from '../components/List';
 import {Container} from '../components/GlobalComponents';
+import {SearchInput} from '../components/SearchInput';
 
-var MapT = (teams: TeamsList[]) => {
+const getTeamsList = ( teams: TeamsList[]) => {
     return teams.map(team => {
-        var columns = [
+        const columns = [
             {
                 key: 'Name',
                 value: team.name,
@@ -24,21 +25,32 @@ var MapT = (teams: TeamsList[]) => {
 
 const Teams = () => {
     const [teams, setTeams] = React.useState<any>([]);
+    const [filteredTeams, setFilteredTeams] = React.useState<any>([]);
     const [isLoading, setIsLoading] = React.useState<any>(true);
 
     React.useEffect(() => {
-        const getTeams = async () => {
-            const response = await fetchTeams();
-            setTeams(response);
+        // switch spinner with data
+        fetchTeams().then(response => {
+            setTeams(response as TeamsList[]);
+            setFilteredTeams(response as TeamsList[]);
             setIsLoading(false);
-        };
-        getTeams();
+        });
+
     }, []);
 
+    const filterTeams = (event) => {
+        const query = event.target.value;
+        const filtered = teams.filter((item) => {
+            const searchKey = item.name;
+            return searchKey.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+        }) as TeamsList[];
+        setFilteredTeams(filtered);
+    };
     return (
         <Container>
             <Header title="Teams" showBackButton={false} />
-            <List items={MapT(teams)} isLoading={isLoading} />
+            <SearchInput onChangeHandler={filterTeams}/>
+            <List items={getTeamsList(filteredTeams)} isLoading={isLoading} />
         </Container>
     );
 };

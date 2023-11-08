@@ -22,8 +22,9 @@ describe('List', () => {
         ];
         render(<List isLoading items={items} />);
 
-        expect(screen.getByTestId('spinner')).toBeInTheDocument();
+        expect(screen.queryByText('There are no items to show')).not.toBeInTheDocument();
         expect(screen.queryByTestId('cardContainer')).not.toBeInTheDocument();
+        expect(screen.getByTestId('spinner')).toBeInTheDocument();
     });
 
     it('should not render spinner and render items when it is not loading', () => {
@@ -41,7 +42,17 @@ describe('List', () => {
         render(<List isLoading={false} items={items} />);
 
         expect(screen.queryByTestId('spinner')).not.toBeInTheDocument();
+        expect(screen.queryByText('There are no items to show')).not.toBeInTheDocument();
         expect(screen.getByTestId('cardContainer-1')).toBeInTheDocument();
+    });
+
+    it('should not render the spinner and the items but a message', () => {
+        const items = [];
+        render(<List isLoading={false} items={items} />);
+
+        expect(screen.queryByTestId('spinner')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cardContainer-1')).not.toBeInTheDocument();
+        expect(screen.getByText('There are no items to show')).toBeInTheDocument();
     });
 
     it('should render multiple card when multiple items', () => {
@@ -67,6 +78,8 @@ describe('List', () => {
         ];
         render(<List isLoading={false} items={items} />);
 
+        expect(screen.queryByTestId('spinner')).not.toBeInTheDocument();
+        expect(screen.queryByText('There are no items to show')).not.toBeInTheDocument();
         expect(screen.getByTestId('cardContainer-1')).toBeInTheDocument();
         expect(screen.getByTestId('cardContainer-2')).toBeInTheDocument();
     });
